@@ -9,29 +9,24 @@
 <body>
 
     <div class="container">
-        <h1 class="title">IP Range Subnet Calculator</h1>
-        
-        <div class="input-section">
-            <label for="ip">Enter IP Address:</label>
-            <input type="text" id="ip" placeholder="e.g. 192.168.1.1">
-
-            <label for="subnet">Enter Subnet Mask:</label>
-            <input type="text" id="subnet" placeholder="e.g. 255.255.255.0">
-
-            <button onclick="calculateSubnet()">Calculate</button>
-        </div>
-
-        <div class="output-section">
-            <h2>Results:</h2>
-            <p id="network-address"></p>
-            <p id="first-ip"></p>
-            <p id="last-ip"></p>
-            <p id="broadcast-address"></p>
-            <p id="total-hosts"></p>
+        <div class="main-content">
+            <h1 class="title">IP Range Subnet Calculator</h1>
+            
+            <div class="input-section">
+                <input type="text" id="ip" placeholder="Enter IP/CIDR (e.g., 192.168.1.0/24)" />
+                <button onclick="calculateSubnet()">Calculate</button>
+            </div>
+            
+            <div class="output-section">
+                <p id="network-address">Network Address: </p>
+                <p id="first-ip">First Usable IP: </p>
+                <p id="last-ip">Last Usable IP: </p>
+                <p id="broadcast-address">Broadcast Address: </p>
+                <p id="total-hosts">Total Hosts: </p>
+            </div>
         </div>
     </div>
 
     <script src="script.js"></script>
-
 </body>
 </html>

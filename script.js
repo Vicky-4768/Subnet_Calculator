@@ -1,23 +1,40 @@
-// Function to calculate subnet range details
+// Function to calculate subnet range details based on CIDR
 function calculateSubnet() {
-    const ip = document.getElementById("ip").value;
-    const subnet = document.getElementById("subnet").value;
+    const ipCIDR = document.getElementById("ip").value;
 
-    if (!isValidIP(ip) || !isValidSubnet(subnet)) {
-        alert("Please enter valid IP address and subnet mask.");
+    if (!isValidCIDR(ipCIDR)) {
+        alert("Please enter a valid IP address with CIDR notation (e.g., 192.168.1.0/24).");
         return;
     }
 
+    // Split the input into IP address and CIDR prefix
+    const [ip, prefix] = ipCIDR.split('/');
+    const prefixLength = parseInt(prefix);
+
+    if (prefixLength < 0 || prefixLength > 32) {
+        alert("CIDR prefix must be between 0 and 32.");
+        return;
+    }
+
+    // Convert CIDR prefix length to subnet mask
+    const subnetMask = cidrToSubnetMask(prefixLength);
+
     const ipParts = ip.split(".").map(Number);
-    const subnetParts = subnet.split(".").map(Number);
 
-    const networkAddress = ipParts.map((part, index) => part & subnetParts[index]).join(".");
-    const broadcastAddress = subnetParts.map((part, index) => part | (255 - subnetParts[index]) ).join(".");
+    // Calculate network address
+    const networkAddress = ipParts.map((part, index) => part & subnetMask[index]).join(".");
 
+    // Calculate broadcast address
+    const broadcastAddress = subnetMask.map((part, index) => part | (255 - subnetMask[index])).join(".");
+
+    // Calculate the first usable IP (network address + 1)
     const firstIP = networkAddress.split(".").map((part, index) => (index === 3 ? Number(part) + 1 : part)).join(".");
+
+    // Calculate the last usable IP (broadcast address - 1)
     const lastIP = broadcastAddress.split(".").map((part, index) => (index === 3 ? Number(part) - 1 : part)).join(".");
 
-    const totalHosts = Math.pow(2, 32 - getSubnetMaskBits(subnet)) - 2;
+    // Calculate total hosts
+    const totalHosts = Math.pow(2, 32 - prefixLength) - 2;
 
     // Output results
     document.getElementById("network-address").innerText = `Network Address: ${networkAddress}`;
@@ -27,26 +44,18 @@ function calculateSubnet() {
     document.getElementById("total-hosts").innerText = `Total Hosts: ${totalHosts}`;
 }
 
-// Validate IP address
-function isValidIP(ip) {
-    const regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    return regex.test(ip);
+// Validate CIDR input
+function isValidCIDR(input) {
+    const regex = /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/;
+    return regex.test(input);
 }
 
-// Validate subnet mask
-function isValidSubnet(subnet) {
-    const regex = /^(255|254|252|248|240|224|192|128|0)\.(255|254|252|248|240|224|192|128|0)\.(255|254|252|248|240|224|192|128|0)\.(255|254|252|248|240|224|192|128|0)$/;
-    return regex.test(subnet);
-}
-
-// Get the number of subnet mask bits
-function getSubnetMaskBits(subnet) {
-    const subnetParts = subnet.split(".").map(Number);
-    let maskBits = 0;
-
-    subnetParts.forEach(part => {
-        maskBits += (part >>> 0).toString(2).split("1").length - 1;
-    });
-
-    return maskBits;
+// Convert CIDR prefix length to subnet mask
+function cidrToSubnetMask(prefixLength) {
+    let mask = [];
+    let binaryMask = "1".repeat(prefixLength) + "0".repeat(32 - prefixLength);
+    for (let i = 0; i < 4; i++) {
+        mask.push(parseInt(binaryMask.slice(i * 8, (i + 1) * 8), 2));
+    }
+    return mask;
 }
